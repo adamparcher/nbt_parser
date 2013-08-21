@@ -2,8 +2,7 @@ package ap.minecraft.chunkthing.nbt;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import org.junit.After;
 import org.junit.Before;
@@ -11,23 +10,11 @@ import org.junit.Test;
 
 public class TagTest {
 	private static final byte byteTestData = (byte)0x89;
+	private MockInputStream mis;
 	
-	class MockInputStream extends InputStream {
-		private int[] contents;
-		private int i;
-		public MockInputStream(int[] _contents) {
-			this.contents = _contents;
-			this.i = 0;
-		}
-
-		@Override
-		public int read() throws IOException {
-			return contents[i++];
-		}
-	}
-
 	@Before
 	public void setUp() throws Exception {
+		mis = new MockInputStream();
 	}
 
 	@After
@@ -44,134 +31,235 @@ public class TagTest {
 	
 	@Test
 	public void testByteTagContents() {
-		// Mock input stream
-		int[] testData1 = {1, -119, 0, 0, 0, 0};
-		MockInputStream mis = new MockInputStream(testData1);
+		byte theValue = -119;
+		String theName = "Byte Tag 123";
+		
+		mis.add((byte) 1);
+		mis.add((short)theName.length());
+		mis.add(theName);
+		mis.add(theValue); 
 		
 		Tag t = new Tag();
 		t.readTag(mis);
 		assertEquals(TagType.BYTE, t.getTagType());
-		assertEquals(-119, t.getNumberTagContents());
-		
-		
-		
-
-		// Mock input stream
-		int[] testData2 = {1, 115, 0, 0, 0, 0};
-		mis = new MockInputStream(testData2);
-		
-		t = new Tag();
-		t.readTag(mis);
-		assertEquals(TagType.BYTE, t.getTagType());
-		assertEquals(115, t.getNumberTagContents());
+		assertEquals(theName, t.getName());
+		assertEquals(theValue, t.getNumberTagContents());
 	}
 	
 	@Test
 	public void testShortTagContents() {
-		// Mock input stream
-		int[] testData1 = {2, 0x30, 0xA3, 0, 0, 0};
-		MockInputStream mis = new MockInputStream(testData1);
+		short theValue = 12451;
+		String theName = "Short Tag 123";
+		
+		mis.add((byte)2);
+		mis.add((short)theName.length());
+		mis.add(theName);
+		mis.add(theValue);
 		
 		Tag t = new Tag();
 		t.readTag(mis);
 		assertEquals(TagType.SHORT, t.getTagType());
-		assertEquals(12451 , t.getNumberTagContents());
+		assertEquals(theName, t.getName());
+		assertEquals(theValue , t.getNumberTagContents());
 	}
 	
 	@Test
 	public void testIntTagContents() {
-		// Mock input stream
-		int[] testData1 = {3, 0x01, 0x71, 0xCB, 0x25, 0, 0, 0};// int 24234789 
-		MockInputStream mis = new MockInputStream(testData1);
+		int theValue = 24234789;
+		String theName = "Int Tag 123";
 		
+		mis.add((byte)3);
+		mis.add((short)theName.length());
+		mis.add(theName);
+		mis.add(theValue);
+				
 		Tag t = new Tag();
 		t.readTag(mis);
 		assertEquals(TagType.INT, t.getTagType());
+		assertEquals(theName, t.getName());
 		assertEquals(24234789, t.getNumberTagContents());
 	}
 	
 	@Test
 	public void testLongTagContents() {
-		// Mock input stream
 		long theLong = 0x8765432112345678l;
-		int[] testData1 = {4, 0x87, 0x65, 0x43, 0x21, 0x12, 0x34, 0x56, 0x78, 0, 0, 0}; 
-		MockInputStream mis = new MockInputStream(testData1);
+		String theName = "Long Tag 123";
+
+		mis.add((byte)4);
+		mis.add((short)theName.length());
+		mis.add(theName);
+		mis.add(theLong);
 		
 		Tag t = new Tag();
 		t.readTag(mis);
 		assertEquals(TagType.LONG, t.getTagType());
+		assertEquals(theName, t.getName());
 		assertEquals(theLong, t.getNumberTagContents());
 	}
 	
 	@Test
 	public void testFloatTagContents() {
-		// Mock input stream
-		int[] testData1 = {5, 0x44, 0xbe, 0x69, 0x36, 0, 0, 0, 0}; // this is 1523.287890 as a floating point
-		MockInputStream mis = new MockInputStream(testData1);
-
+		float theFloat = 1523.287890f;
+		String theName = "Float Tag 123";
+		
+		mis.add((byte)5);
+		mis.add((short)theName.length());
+		mis.add(theName);
+		mis.add(theFloat);
+		
 		Tag t = new Tag();
 		t.readTag(mis);
 		assertEquals(TagType.FLOAT, t.getTagType());
-		assertEquals(1523.287890f, t.getFloatTagContents(), 0f);
+		assertEquals(theName, t.getName());
+		assertEquals(theFloat, t.getFloatTagContents(), 0f);
 	}
 	
 	@Test
 	public void testDoubleTagContents() {
-		// Mock input stream
-		int[] testData1 = {6, 0x40, 0x93, 0x4A, 0xB2, 0x7B, 0xB2, 0xFE, 0xC5 , 0, 0, 0, 0}; // this is 1523.287890 as a floating point
-		MockInputStream mis = new MockInputStream(testData1);
+		double theDouble = 1234.6743;
+		String theName = "Double Tag 123";
+				
+		mis.add((byte)6);
+		mis.add((short)theName.length());
+		mis.add(theName);
+		mis.add(theDouble);
 
 		Tag t = new Tag();
 		t.readTag(mis);
 		assertEquals(TagType.DOUBLE, t.getTagType());
-		assertEquals(1234.6743, t.getDoubleTagContents(), 0);
+		assertEquals(theName, t.getName());
+		assertEquals(theDouble, t.getDoubleTagContents(), 0);
 	}
 	
 	@Test
 	public void testByteArrayTagContents() {
-		// Mock input stream
-		final int[] testData1 = {7, 0x00, 0x00, 0x00, 0x04, 0x7B, 0xB2, 0xFE, 0xC5, 0, 0, 0, 0}; 
 		final int size = 4;
 		final byte[] bytes = {(byte)0x7B, (byte)0xB2, (byte)0xFE, (byte)0xC5};
-		MockInputStream mis = new MockInputStream(testData1);
-
+		String theName = "Byte Array Tag 123";
+		
+		mis.add((byte)7);
+		mis.add((short)theName.length());
+		mis.add(theName);
+		mis.add(size);
+		for(Byte b : bytes) {
+			mis.add(b);
+		}
+		
 		Tag t = new Tag();
 		t.readTag(mis);
 		assertEquals(TagType.BYTE_ARRAY, t.getTagType());
+		assertEquals(theName, t.getName());
 		assertEquals(size, t.getContentsSize());
 		assertArrayEquals(bytes, t.getByteArrayContents());
 	}
 	
-
-	
 	@Test
 	public void testStringTagContents() {
-		// Mock input stream
-		final int[] testData1 = {8, 0x00, 0x06, (byte)'E', (byte)'a', (byte)'t', (byte)'i', (byte)'t', (byte)'!', 0, 0, 0}; 
-		final int size = 6;
+
+		final short size = 6;
 		final String theString = "Eatit!";
-		MockInputStream mis = new MockInputStream(testData1);
+		String theName = "String Tag 123";
+		
+		mis.add((byte)8);
+		mis.add((short)theName.length());
+		mis.add(theName);
+		mis.add(size);
+		mis.add(theString);
 
 		Tag t = new Tag();
 		t.readTag(mis);
 		assertEquals(TagType.STRING, t.getTagType());
+		assertEquals(theName, t.getName());
 		assertEquals(size, t.getContentsSize());
 		assertEquals(theString, t.getStringContents());
 	}
 	
 	@Test
 	public void testListTagContents() {
-		// Mock input stream
-		final int[] testData1 = {9, 0x00, 0x06, (byte)'E', (byte)'a', (byte)'t', (byte)'i', (byte)'t', (byte)'!', 0, 0, 0}; 
-		final int size = 6;
-		final String theString = "Eatit!";
-		MockInputStream mis = new MockInputStream(testData1);
 
+		final byte tagType = TagType.BYTE;
+		final int size = 5;
+		final Tag[] contents = { new Tag(TagType.BYTE, 1), new Tag(TagType.BYTE, 1), new Tag(TagType.BYTE, 2),
+				new Tag(TagType.BYTE, 3), new Tag(TagType.BYTE, 5) };
+		String theName = "List Tag 123";
+		
+		
+		mis.add((byte)9);
+		mis.add((short)theName.length());
+		mis.add(theName);
+		mis.add(tagType);
+		mis.add(size);
+		for(Tag t : contents){
+			mis.add((byte)t.getNumberTagContents());
+		}
+
+		
 		Tag t = new Tag();
 		t.readTag(mis);
-		assertEquals(TagType.STRING, t.getTagType());
+		assertEquals(TagType.LIST, t.getTagType());
+		assertEquals(theName, t.getName());
+		assertEquals(tagType, t.getListTagType());
 		assertEquals(size, t.getContentsSize());
-		assertEquals(theString, t.getStringContents());
+		assertArrayEquals(contents, t.getListContents());
+	}
+	
+	@Test
+	public void testCompoundTagContents() {
+
+		final Tag[] contents = { new Tag("byte tag 1", TagType.BYTE).setNumberContents(1),
+				new Tag("short byte 2", TagType.SHORT).setNumberContents(1),
+				new Tag("string tag 3", TagType.STRING).setStringContents("my string is great"),
+				new Tag("long tag 4", TagType.LONG).setNumberContents(12376823467889l)};
+		String theName = "Compound Tag 123";
+
+		mis.add((byte)10);
+		mis.add((short)theName.length());
+		mis.add(theName);
+		for(Tag t : contents){
+			mis.add((byte)t.getTagType());
+			mis.add((short)t.getName().length());
+			mis.add(t.getName());
+			if(t.getTagType() == TagType.BYTE) {
+				mis.add((byte)t.getNumberTagContents());
+			} else if(t.getTagType() == TagType.SHORT){
+				mis.add((short)t.getNumberTagContents());
+			} else if(t.getTagType() == TagType.STRING){
+				mis.add((short)t.getStringContents().length());
+				mis.add(t.getStringContents());
+			} else if(t.getTagType() == TagType.LONG) {
+				mis.add((long)t.getNumberTagContents());
+			}
+		}
+		mis.add((byte)0); // for the END tag
+
+		
+		Tag t = new Tag();
+		t.readTag(mis);
+		assertEquals(TagType.COMPOUND, t.getTagType());
+		assertEquals(theName, t.getName());
+		assertArrayEquals(contents, t.getListContents());
+	}
+	
+	@Test
+	public void testIntArrayTagContents() {
+		final int size = 4;
+		final int[] ints = {19810738, 2378912, -1237987, -9748639};
+		String theName = "Int Array Tag 123";
+		
+		mis.add((byte)11);
+		mis.add((short)theName.length());
+		mis.add(theName);
+		mis.add(size);
+		for(int i : ints) {
+			mis.add(i);
+		}
+		
+		Tag t = new Tag();
+		t.readTag(mis);
+		assertEquals(TagType.INT_ARRAY, t.getTagType());
+		assertEquals(theName, t.getName());
+		assertEquals(size, t.getContentsSize());
+		assertArrayEquals(ints, t.getIntArrayContents());
 	}
 	
 
